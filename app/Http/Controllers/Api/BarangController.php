@@ -26,14 +26,26 @@ class BarangController extends Controller
             'harga_jual' => 'required|numeric'
         ]);
 
-        $barang = Barang::create([
-            'kategori_id' => $request->kategori_id,
-            'kode_barang' => $request->kode_barang,
-            'nama_barang' => $request->nama_barang,
-            'stok' => $request->stok,
-            'harga_beli' => $request->harga_beli,
-            'harga_jual' => $request->harga_jual
-        ]);
+        $barang = \DB::transaction(function () use ($request) {
+            $barang = \App\Models\Barang::create([
+                'kategori_id' => $request->kategori_id,
+                'kode_barang' => $request->kode_barang,
+                'nama_barang' => $request->nama_barang,
+                'stok' => $request->stok,
+                'harga_beli' => $request->harga_beli,
+                'harga_jual' => $request->harga_jual
+            ]);
+
+            if ($barang->stok > 0) {
+                \App\Models\BarangMasuk::create([
+                    'barang_id' => $barang->id,
+                    'jumlah' => $barang->stok,
+                    'tanggal_masuk' => now()->toDateString()
+                ]);
+            }
+
+            return $barang;
+        });
 
         return response()->json([
             'message' => 'Barang berhasil ditambahkan',

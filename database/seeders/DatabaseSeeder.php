@@ -15,11 +15,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        User::updateOrCreate(
+            ['email' => 'admin@gudang.com'],
+            [
+                'name' => 'Administrator',
+                'password' => bcrypt('admin123'),
+                'role' => 'admin', // Pastikan kolom role ada di tabel users Anda
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        echo "Akun Admin Berhasil Dibuat:\n";
+        echo "Email: admin@gudang.com\n";
+        echo "Pass : admin123\n";
     }
 }

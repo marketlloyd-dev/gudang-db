@@ -18,14 +18,21 @@ class AuthController extends Controller
             'password' => 'required|min:6'
         ]);
 
+        // List email yang diizinkan jadi admin
+        $adminEmails = ['patihaparhan@gmail.com', 'admin@gudang.com'];
+
+        // Tentukan role berdasarkan email
+        $role = in_array($request->email, $adminEmails) ? 'admin' : 'anggota';
+
         $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
-            'password' => Hash::make($request->password)
+            'password' => Hash::make($request->password),
+            'role'     => $role
         ]);
 
         return response()->json([
-            'message' => 'Register berhasil',
+            'message' => 'Register berhasil sebagai ' . $role,
             'user'    => $user
         ], 201);
     }
@@ -62,6 +69,32 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Logout berhasil'
+        ]);
+    }
+
+    // Update Profile
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|min:6|confirmed',
+        ]);
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+
+        if ($request->password) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'Profil berhasil diperbarui',
+            'user' => $user
         ]);
     }
 }
